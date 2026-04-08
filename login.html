@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>লগইন</title>
+  <style>
+    :root {
+      --primary: #1f7a46;
+      --soft: #eefaf2;
+      --dark: #10331d;
+      --danger: #c0392b;
+      --card: #ffffff;
+      --muted: #5f6f65;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #f7fff8, #ebfff3);
+      color: var(--dark);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px
+    }
+
+    .card {
+      width: min(100%, 430px);
+      background: var(--card);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(16, 51, 29, .08);
+      border: 1px solid #dff0e6
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px
+    }
+
+    .sub {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 15px
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 700
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #cfe5d6;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none
+    }
+
+    .input:focus {
+      border-color: var(--primary)
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 18px
+    }
+
+    .btn:disabled {
+      opacity: .65;
+      cursor: not-allowed
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 14px
+    }
+
+    .link a {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none
+    }
+
+    .note {
+      background: var(--soft);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--muted)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>লগইন করুন</h1>
+    <p class="sub">মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে আপনার একাউন্টে প্রবেশ করুন</p>
+    <div class="note">একাউন্ট না থাকলে নিচের লিংকে ক্লিক করে নতুন একাউন্ট তৈরি করুন।</div>
+    <form id="loginForm">
+      <label>মোবাইল নম্বর</label>
+      <input class="input" type="text" id="phone" placeholder="০১XXXXXXXXX" required />
+      <label>পাসওয়ার্ড</label>
+      <input class="input" type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" required />
+      <button class="btn" id="submitBtn" type="submit">সাবমিট</button>
+    </form>
+    <div class="link">একাউন্ট না থাকলে <a href="register.html">নতুন একাউন্ট তৈরি করুন</a></div>
+  </div>
+  <script>
+    const API_BASE = 'https://ss-l59h.onrender.com/api';
+    function normalizePhone(input) {
+      const value = String(input || '').replace(/\s+/g, '').replace(/[^0-9+]/g, '');
+      if (value.startsWith('+880')) return '0' + value.slice(4);
+      if (value.startsWith('880')) return '0' + value.slice(3);
+      return value;
+    }
+    if (localStorage.getItem('userToken')) location.href = 'index.html';
+    const form = document.getElementById('loginForm');
+    const phone = document.getElementById('phone');
+    const password = document.getElementById('password');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: normalizePhone(phone.value), password: password.value })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'লগইন হয়নি');
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userInfo', JSON.stringify(data.user));
+        alert(data.message);
+        location.href = 'index.html';
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>
